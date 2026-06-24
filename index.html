@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner Paket pengiriman</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+:root{
+ --primary:#003399;
+ --bg-body:#f8fafc;
+ --card-shadow:0 4px 6px -1px rgb(0 0 0 / 0.05);
+ --keluar-bg:#dcfce7;
+ --keluar-text:#166534;
+}
+
+*{
+ margin:0;
+ padding:0;
+ box-sizing:border-box;
+ font-family:Arial,sans-serif;
+}
+
+body{
+ background:var(--bg-body);
+ padding:10px;
+ color:#334155;
+ max-width:500px;
+ margin:0 auto;
+}
+
+.header-box{
+ background:var(--primary);
+ color:#fff;
+ padding:12px;
+ border-radius:12px;
+ margin-bottom:10px;
+ text-align:center;
+}
+
+.btn-nav{
+ background:#cc0000;
+ color:white;
+ border:none;
+ padding:8px 15px;
+ font-weight:bold;
+ border-radius:5px;
+ cursor:pointer;
+ text-decoration:none;
+ display:inline-block;
+ margin-top:5px;
+ font-size:13px;
+}
+
+.dash-container{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:8px;
+ margin:10px 0;
+}
+
+.dash-card{
+ background:white;
+ padding:10px 5px;
+ border-radius:10px;
+ text-align:center;
+ box-shadow:var(--card-shadow);
+}
+
+.dash-card h4{
+ font-size:11px;
+ color:#64748b;
+}
+
+.dash-card p{
+ margin-top:5px;
+ font-size:20px;
+ font-weight:800;
+ color:var(--primary);
+}
+
+.card{
+ background:white;
+ border-radius:14px;
+ padding:14px;
+ margin-bottom:12px;
+ box-shadow:var(--card-shadow);
+}
+
+.card h3{
+ margin-bottom:10px;
+ font-size:14px;
+}
+
+#bca-indicator{
+ width:70px;
+ height:70px;
+ border-radius:50%;
+ background:#ff3333;
+ margin:10px auto;
+ box-shadow:0 0 12px rgba(0,0,0,.2);
+}
+
+#status-message{
+ text-align:center;
+ font-weight:bold;
+ margin:10px 0;
+}
+
+#reader{
+ width:100%;
+ border-radius:10px;
+ overflow:hidden;
+ background:black;
+ min-height:250px;
+}
+
+.btn{
+ width:100%;
+ padding:14px;
+ border:none;
+ border-radius:10px;
+ font-weight:bold;
+ cursor:pointer;
+}
+
+.btn-primary{
+ background:#003399;
+ color:white;
+}
+
+input{
+ width:100%;
+ padding:12px;
+ border:1px solid #cbd5e1;
+ border-radius:10px;
+ margin-bottom:10px;
+}
+
+.history-container{
+ max-height:250px;
+ overflow-y:auto;
+}
+
+table{
+ width:100%;
+ border-collapse:collapse;
+}
+
+th,td{
+ padding:10px;
+ font-size:13px;
+ text-align:left;
+}
+
+th{
+ background:#f8fafc;
+}
+
+td{
+ border-bottom:1px solid #eee;
+}
+
+.badge{
+ padding:4px 8px;
+ border-radius:6px;
+ font-size:11px;
+ font-weight:bold;
+}
+
+.badge-keluar{
+ background:#dcfce7;
+ color:#166534;
+}
+
+.badge-duplikat{
+ background:#fee2e2;
+ color:#b91c1c;
+}
+
+.badge-invalid{
+ background:#fef3c7;
+ color:#92400e;
+}
+
+#notif{
+ display:none;
+ position:fixed;
+ top:15px;
+ left:50%;
+ transform:translateX(-50%);
+ z-index:9999;
+ padding:12px;
+ border-radius:10px;
+ color:white;
+ font-weight:bold;
+}
+
+.success{
+ background:#10b981;
+}
+
+.warning{
+ background:#f59e0b;
+}
+
+.error{
+ background:#ef4444;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="header-box">
+<h3>📦 SCANNER PAKET KELUAR </h3>
+<a href="retur.html" class="btn-nav">RETUR</a>
+<a href="upload.html" class="btn-nav">UPLOAD</a>
+</div>
+
+<div class="dash-container">
+<div class="dash-card">
+<h4>Hari Ini</h4>
+<p id="load-hari-ini">0</p>
+</div>
+
+<div class="dash-card">
+<h4>Kemarin</h4>
+<p id="load-kemarin">0</p>
+</div>
+
+<div class="dash-card">
+<h4>Minggu</h4>
+<p id="load-minggu">0</p>
+</div>
+</div>
+
+<div id="bca-indicator"></div>
+<div id="status-message">Menyalakan Kamera...</div>
+
+<div class="card">
+<div id="reader"></div>
+<button id="startBtn" class="btn btn-primary" style="margin-top:10px;">
+Aktifkan Kamera
+</button>
+</div>
+
+<div class="card">
+<h3>Input Manual Resi</h3>
+<input type="text" id="manualResi" placeholder="Masukkan nomor resi">
+<button id="manualBtn" class="btn btn-primary">
+Simpan Resi
+</button>
+</div>
+
+<div id="notif"></div>
+
+<div class="card">
+<h3>Riwayat Scan</h3>
+
+<div class="history-container">
+<table>
+<thead>
+<tr>
+<th>Resi</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="historyBody"></tbody>
+</table>
+</div>
+</div>
+
+<script>
+
+const APP_URL="https://script.google.com/macros/s/AKfycbyuJTOZaFhOZ52fFKPCxFIulD5rTFJb6VehsELtOZgjmaJf0Epc4Jm71gcPVLtE9sJK/exec";
+
+let html5QrCode=null;
+let isProcessing=false;
+
+let scanHistory=
+JSON.parse(localStorage.getItem("scanHistory")||"[]");
+
+renderHistory();
+
+window.onload=function(){
+ startCamera();
+};
+
+function setLampu(warna,pesan){
+
+ document.getElementById("status-message").innerText=pesan;
+
+ const lamp=
+ document.getElementById("bca-indicator");
+
+ if(warna==="ijo") lamp.style.background="#00cc44";
+ if(warna==="kuning") lamp.style.background="#ffcc00";
+ if(warna==="merah") lamp.style.background="#ff3333";
+}
+
+function showNotif(text,type){
+
+ const n=document.getElementById("notif");
+
+ n.className=type;
+ n.innerHTML=text;
+ n.style.display="block";
+
+ setTimeout(()=>{
+  n.style.display="none";
+ },2000);
+}
+
+function beep(freq){
+
+ try{
+
+ const ctx=
+ new(window.AudioContext||window.webkitAudioContext)();
+
+ const osc=
+ ctx.createOscillator();
+
+ osc.frequency.value=freq;
+
+ osc.connect(ctx.destination);
+
+ osc.start();
+
+ osc.stop(ctx.currentTime+0.1);
+
+ }catch(e){}
+}
+
+function startCamera(){
+
+ if(html5QrCode) return;
+
+ html5QrCode=
+ new Html5Qrcode("reader");
+
+ html5QrCode.start(
+ {facingMode:"environment"},
+ {fps:15,qrbox:220},
+ (decodedText)=>{
+
+   if(isProcessing) return;
+
+   isProcessing=true;
+
+   html5QrCode.pause();
+
+   saveResi(decodedText.trim());
+
+ }
+ ).then(()=>{
+
+   setLampu(
+   "ijo",
+   "Scanner Siap"
+   );
+
+ });
+}
+
+document.getElementById("startBtn")
+.onclick=startCamera;
+
+async function saveResi(resi){
+
+ setLampu(
+ "kuning",
+ "Mengirim..."
+ );
+
+ try{
+
+ const r=
+ await fetch(APP_URL,{
+ method:"POST",
+ headers:{
+ "Content-Type":"text/plain"
+ },
+ body:JSON.stringify({
+ resi:resi,
+ source:"harian"
+ })
+ });
+
+ const json=
+ await r.json();
+
+ if(json.status==="success"){
+
+   beep(1000);
+
+   setLampu(
+   "ijo",
+   "Berhasil"
+   );
+
+   showNotif(
+   "✓ BERHASIL",
+   "success"
+   );
+
+   scanHistory.unshift({
+   resi:resi,
+   status:"SUKSES"
+   });
+
+ }
+
+ else if(json.status==="duplicate"){
+
+   beep(350);
+
+   setLampu(
+   "merah",
+   "Resi Dobel"
+   );
+
+   showNotif(
+   "⚠ DOBEL",
+   "warning"
+   );
+
+   scanHistory.unshift({
+   resi:resi,
+   status:"DUPLIKAT"
+   });
+
+ }
+
+ else{
+
+   beep(150);
+
+   setLampu(
+   "merah",
+   "Resi Invalid"
+   );
+
+   showNotif(
+   "⚠ INVALID",
+   "error"
+   );
+
+   scanHistory.unshift({
+   resi:resi,
+   status:"INVALID"
+   });
+
+ }
+
+ localStorage.setItem(
+ "scanHistory",
+ JSON.stringify(
+ scanHistory.slice(0,100)
+ ));
+
+ renderHistory();
+
+ }catch(e){
+
+ setLampu(
+ "merah",
+ "Koneksi Gagal"
+ );
+
+ }
+
+ setTimeout(()=>{
+
+ isProcessing=false;
+
+ if(html5QrCode)
+ html5QrCode.resume();
+
+ },1500);
+}
+
+document.getElementById("manualBtn")
+.addEventListener("click",()=>{
+
+ const resi=
+ document.getElementById("manualResi")
+ .value
+ .trim();
+
+ if(!resi) return;
+
+ saveResi(resi);
+
+ document.getElementById("manualResi")
+ .value="";
+});
+
+function renderHistory(){
+
+ const body=
+ document.getElementById(
+ "historyBody"
+ );
+
+ body.innerHTML="";
+
+ scanHistory
+ .slice(0,15)
+ .forEach(item=>{
+
+ let badge=
+ item.status==="DUPLIKAT"
+ ? "badge-duplikat"
+ : item.status==="INVALID"
+ ? "badge-invalid"
+ : "badge-keluar";
+
+ body.innerHTML+=`
+ <tr>
+ <td>${item.resi}</td>
+ <td>
+ <span class="badge ${badge}">
+ ${item.status}
+ </span>
+ </td>
+ </tr>`;
+ });
+}
+
+</script>
+
+</body>
+</html>
