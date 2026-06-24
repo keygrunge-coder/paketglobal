@@ -1,11 +1,19 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Scanner Retur</title>
+
 <style>
+
+/* CSS LANGSUNG DI DALAM FILE HTML */
 
 :root{
 --primary:#003399;
 --bg-body:#f8fafc;
 --card-shadow:0 4px 6px -1px rgb(0 0 0 / 0.05);
---keluar-bg:#dcfce7;
---keluar-text:#166534;
 }
 
 *{
@@ -20,12 +28,12 @@ background:var(--bg-body);
 padding:10px;
 color:#334155;
 max-width:500px;
-margin:0 auto;
+margin:auto;
 }
 
 .header-box{
 background:var(--primary);
-color:white;
+color:#fff;
 padding:12px;
 border-radius:12px;
 margin-bottom:10px;
@@ -33,20 +41,11 @@ text-align:center;
 }
 
 .card{
-background:white;
+background:#fff;
 border-radius:14px;
 padding:14px;
 margin-bottom:12px;
 box-shadow:var(--card-shadow);
-border:1px solid #f1f5f9;
-}
-
-.card h3{
-font-size:14px;
-font-weight:700;
-margin-bottom:10px;
-color:#475569;
-text-transform:uppercase;
 }
 
 #bca-indicator{
@@ -55,23 +54,18 @@ height:70px;
 border-radius:50%;
 background:#ff3333;
 margin:10px auto;
-box-shadow:0 0 12px rgba(0,0,0,.2);
-transition:.3s;
 }
 
 #status-message{
-font-size:15px;
+text-align:center;
 font-weight:bold;
 margin:10px 0;
-color:#334155;
-text-align:center;
 }
 
 #reader{
 width:100%;
-border-radius:10px;
 overflow:hidden;
-background:black;
+border-radius:10px;
 }
 
 .btn{
@@ -79,16 +73,10 @@ width:100%;
 padding:14px;
 border:none;
 border-radius:10px;
-font-size:14px;
-font-weight:700;
-cursor:pointer;
-background:var(--primary);
+background:#003399;
 color:white;
-}
-
-.history-container{
-max-height:250px;
-overflow-y:auto;
+font-weight:bold;
+cursor:pointer;
 }
 
 table{
@@ -97,29 +85,15 @@ border-collapse:collapse;
 }
 
 th,td{
-padding:10px 6px;
-font-size:13px;
-text-align:left;
-}
-
-th{
-background:#f8fafc;
-color:#64748b;
-font-weight:700;
-position:sticky;
-top:0;
-}
-
-td{
-border-bottom:1px solid #f1f5f9;
+padding:10px;
+border-bottom:1px solid #eee;
 }
 
 .badge{
-padding:3px 8px;
+padding:4px 8px;
 border-radius:6px;
 font-size:11px;
-font-weight:700;
-display:inline-block;
+font-weight:bold;
 }
 
 .badge-kembali{
@@ -137,33 +111,40 @@ background:#fef3c7;
 color:#92400e;
 }
 
-.badge-error{
-background:#e5e7eb;
-color:#374151;
-}
-
 </style>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+</head>
+
+<body>
 
 <div class="header-box">
 <h3>🔄 SCANNER BARANG RETUR</h3>
 </div>
 
 <div id="bca-indicator"></div>
-<div id="status-message">Menyalakan Kamera...</div>
 
-<div class="card">
-<div id="reader"></div>
-
-<button id="startBtn" class="btn" style="margin-top:10px">
-Aktifkan Kamera
-</button>
+<div id="status-message">
+Menyalakan Kamera...
 </div>
 
 <div class="card">
+
+<div id="reader"></div>
+
+<button id="startBtn" class="btn">
+Aktifkan Kamera
+</button>
+
+</div>
+
+<div class="card">
+
 <h3>Riwayat Retur</h3>
 
-<div class="history-container">
 <table>
+
 <thead>
 <tr>
 <th>Resi</th>
@@ -172,21 +153,12 @@ Aktifkan Kamera
 </thead>
 
 <tbody id="historyBody"></tbody>
+
 </table>
-</div>
+
 </div>
 
 <script>
-
-window.onload=function(){
-
-startCamera();
-
-if(typeof muatDataDashboardAwal==="function"){
-muatDataDashboardAwal();
-}
-
-};
 
 const APP_URL="https://script.google.com/macros/s/AKfycbyuJTOZaFhOZ52fFKPCxFIulD5rTFJb6VehsELtOZgjmaJf0Epc4Jm71gcPVLtE9sJK/exec";
 
@@ -197,21 +169,23 @@ JSON.parse(
 localStorage.getItem("returHistory")||"[]"
 );
 
+window.onload=function(){
 renderHistory();
+startCamera();
+};
 
 function robotBicara(teks){
 
-if("speechSynthesis" in window){
+if('speechSynthesis' in window){
 
-window.speechSynthesis.cancel();
+speechSynthesis.cancel();
 
 const tts=
 new SpeechSynthesisUtterance(teks);
 
-tts.lang="id-ID";
-tts.rate=1.2;
+tts.lang='id-ID';
 
-window.speechSynthesis.speak(tts);
+speechSynthesis.speak(tts);
 
 }
 
@@ -219,14 +193,16 @@ window.speechSynthesis.speak(tts);
 
 function setLampu(warna,pesan){
 
-document.getElementById("bca-indicator").style.backgroundColor=
+document.getElementById("bca-indicator")
+.style.backgroundColor=
 warna==="ijo"
 ? "#00cc44"
 : warna==="kuning"
 ? "#ffcc00"
 : "#ff3333";
 
-document.getElementById("status-message").innerText=pesan;
+document.getElementById("status-message")
+.innerText=pesan;
 
 }
 
@@ -265,7 +241,8 @@ robotBicara(
 
 }
 
-document.getElementById("startBtn")
+document
+.getElementById("startBtn")
 .onclick=startCamera;
 
 async function prosesScan(resi){
@@ -289,10 +266,13 @@ source:"retur"
 const json=
 await r.json();
 
-let statusClass="badge-error";
-let statusText="ERROR";
+let badge="badge-tidak";
+let status="ERROR";
 
 if(json.status==="success"){
+
+badge="badge-kembali";
+status="KEMBALI";
 
 setLampu(
 "ijo",
@@ -303,12 +283,11 @@ robotBicara(
 "Barang Sudah Kembali"
 );
 
-statusClass="badge-kembali";
-statusText="KEMBALI";
-
 }
-
 else if(json.status==="duplicate"){
+
+badge="badge-sudah";
+status="SUDAH";
 
 setLampu(
 "merah",
@@ -319,31 +298,12 @@ robotBicara(
 "Sudah Pernah Diproses"
 );
 
-statusClass="badge-sudah";
-statusText="SUDAH";
-
-}
-
-else if(json.status==="notfound"){
-
-setLampu(
-"merah",
-"Resi Tidak Ditemukan"
-);
-
-robotBicara(
-"Resi Tidak Ditemukan"
-);
-
-statusClass="badge-tidak";
-statusText="TIDAK ADA";
-
 }
 
 scanHistory.unshift({
-resi:resi,
-status:statusText,
-badge:statusClass
+resi,
+status,
+badge
 });
 
 localStorage.setItem(
@@ -363,10 +323,6 @@ setLampu(
 "Error Koneksi"
 );
 
-robotBicara(
-"Gagal Koneksi"
-);
-
 }
 
 setTimeout(()=>{
@@ -381,13 +337,12 @@ html5QrCode.resume();
 
 function renderHistory(){
 
-const body=
 document.getElementById(
 "historyBody"
-);
+).innerHTML=
 
-body.innerHTML=
 scanHistory.map(item=>`
+
 <tr>
 <td>${item.resi}</td>
 <td>
@@ -396,8 +351,12 @@ ${item.status}
 </span>
 </td>
 </tr>
+
 `).join("");
 
 }
 
 </script>
+
+</body>
+</html>
