@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner SEKAROFFICIAL</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(() => console.log('PWA Service Worker Terdaftar!'));
+      }
+    </script>
+
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 300px; margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 15px; background: #0d6efd; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0b5ed7; }
+        #status { margin-top: 10px; text-align: center; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Paste Teks Pesanan Tokopedia/TikTok</h2>
+    <textarea id="rawText" placeholder="Paste teks di sini..."></textarea>
+    <button onclick="prosesTeks()">Proses & Upload ke Sheet</button>
+    <div id="status"></div>
+</div>
+
+<script>
+    const APP_URL = "https://script.google.com/macros/s/AKfycbyuJTOZaFhOZ52fFKPCxFIulD5rTFJb6VehsELtOZgjmaJf0Epc4Jm71gcPVLtE9sJK/exec";
+
+    function prosesTeks() {
+        const text = document.getElementById("rawText").value;
+        const blocks = text.split("ID Pesanan:");
+        let dataUpload = [];
+
+        for (let i = 1; i < blocks.length; i++) {
+            let block = blocks[i];
+            let orderMatch = block.match(/\d{18}/);
+            let orderId = orderMatch ? orderMatch[0] : null;
+            let resiMatch = block.match(/(JX|JT|JZ)\d+/);
+            let resi = resiMatch ? resiMatch[0] : null;
+
+            if (orderId && resi) {
+                dataUpload.push([orderId, resi]);
+            }
+        }
+
+        if (dataUpload.length > 0) {
+            uploadKeSheet(dataUpload);
+        } else {
+            alert("Data tidak ditemukan! Pastikan teks yang di-paste mencakup ID Pesanan dan Resi.");
+        }
+    }
+
+    async function uploadKeSheet(data) {
+        document.getElementById("status").innerText = "Mengupload " + data.length + " data...";
+        try {
+            await fetch(APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "uploadManual", data: data })
+            });
+            document.getElementById("status").innerText = "✅ Selesai!";
+            alert("Berhasil memproses " + data.length + " pesanan!");
+        } catch (err) {
+            alert("Error: " + err);
+        }
+    }
+</script>
+</body>
+</html>
