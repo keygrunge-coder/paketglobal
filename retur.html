@@ -1,0 +1,245 @@
+<div class="header-box"><h3>🔄 SCANNER BARANG RETUR</h3></div>
+
+<div id="bca-indicator"></div>
+<div id="status-message">Menyalakan Kamera...</div>
+
+<div class="card">
+    <div id="reader"></div>
+    <button id="startBtn" class="btn" style="margin-top:10px">Aktifkan Kamera</button>
+</div>
+
+<div class="card">
+    <h3>Riwayat Retur</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Resi</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+    </table>
+</div>
+
+<script>
+
+window.onload = function() {
+    startCamera();
+    
+    if (typeof muatDataDashboardAwal === "function") {
+        muatDataDashboardAwal();
+    }
+};
+
+const APP_URL = "https://script.google.com/macros/s/AKfycbyuJTOZaFhOZ52fFKPCxFIulD5rTFJb6VehsELtOZgjmaJf0Epc4Jm71gcPVLtE9sJK/exec";
+
+let html5QrCode = null;
+
+let scanHistory = JSON.parse(
+    localStorage.getItem("returHistory") || "[]"
+);
+
+renderHistory();
+
+function robotBicara(teks) {
+
+    if ('speechSynthesis' in window) {
+
+        window.speechSynthesis.cancel();
+
+        let tts = new SpeechSynthesisUtterance(teks);
+
+        tts.lang = 'id-ID';
+        tts.rate = 1.2;
+
+        window.speechSynthesis.speak(tts);
+    }
+}
+
+function setLampu(warna, pesan) {
+
+    document.getElementById('bca-indicator').style.backgroundColor =
+        warna === 'ijo'
+            ? '#00cc44'
+            : warna === 'kuning'
+            ? '#ffcc00'
+            : '#ff3333';
+
+    document.getElementById('status-message').innerText = pesan;
+}
+
+function startCamera() {
+
+    html5QrCode = new Html5Qrcode("reader");
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        {
+            fps: 10,
+            qrbox: 200
+        },
+        (decodedText) => {
+
+            html5QrCode.pause(true);
+
+            prosesScan(
+                decodedText.trim()
+            );
+        }
+    )
+    .then(() => {
+
+        setLampu(
+            'ijo',
+            'Siap Scan Returan!'
+        );
+
+        robotBicara(
+            "Sistem Retur Siap"
+        );
+    });
+}
+
+document.getElementById("startBtn").onclick = startCamera;
+
+async function prosesScan(resi) {
+
+    setLampu(
+        'kuning',
+        'Memproses...'
+    );
+
+    try {
+
+        const r = await fetch(APP_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                resi: resi,
+                source: "retur"
+            })
+        });
+
+        const json = await r.json();
+
+        if (json.status === "success") {
+
+            setLampu(
+                'ijo',
+                'Barang Sudah Kembali'
+            );
+
+            robotBicara(
+                'Barang Sudah Kembali'
+            );
+
+            scanHistory.unshift({
+                resi: resi,
+                status: "KEMBALI"
+            });
+        }
+
+        else if (json.status === "duplicate") {
+
+            setLampu(
+                'merah',
+                'Sudah Pernah Scan'
+            );
+
+            robotBicara(
+                'Sudah Pernah Diproses'
+            );
+
+            scanHistory.unshift({
+                resi: resi,
+                status: "SUDAH"
+            });
+        }
+
+        else if (json.status === "notfound") {
+
+            setLampu(
+                'merah',
+                'Resi Tidak Ditemukan'
+            );
+
+            robotBicara(
+                'Resi Tidak Ditemukan'
+            );
+
+            scanHistory.unshift({
+                resi: resi,
+                status: "TIDAK ADA"
+            });
+        }
+
+        else {
+
+            setLampu(
+                'merah',
+                'Gagal'
+            );
+
+            robotBicara(
+                'Proses Gagal'
+            );
+
+            scanHistory.unshift({
+                resi: resi,
+                status: "ERROR"
+            });
+        }
+
+        localStorage.setItem(
+            "returHistory",
+            JSON.stringify(
+                scanHistory.slice(0, 15)
+            )
+        );
+
+        renderHistory();
+
+    }
+    catch(e) {
+
+        console.error(e);
+
+        setLampu(
+            'merah',
+            'Error Koneksi'
+        );
+
+        robotBicara(
+            'Gagal Koneksi'
+        );
+    }
+
+    setTimeout(() => {
+
+        if (html5QrCode) {
+            html5QrCode.resume();
+        }
+
+    }, 1500);
+}
+
+function renderHistory() {
+
+    const body =
+        document.getElementById(
+            "historyBody"
+        );
+
+    body.innerHTML =
+        scanHistory.map(item => `
+            <tr>
+                <td>${item.resi}</td>
+                <td>
+                    <span class="badge">
+                        ${item.status}
+                    </span>
+                </td>
+            </tr>
+        `).join("");
+}
+
+</script>
