@@ -1,15 +1,20 @@
-<div class="header-box"><h3>🔄 SCANNER BARANG RETUR</h3></div>
+<div class="header-box">
+    <h3>🔄 SCANNER BARANG RETUR</h3>
+</div>
 
 <div id="bca-indicator"></div>
 <div id="status-message">Menyalakan Kamera...</div>
 
 <div class="card">
     <div id="reader"></div>
-    <button id="startBtn" class="btn" style="margin-top:10px">Aktifkan Kamera</button>
+    <button id="startBtn" class="btn" style="margin-top:10px">
+        Aktifkan Kamera
+    </button>
 </div>
 
 <div class="card">
     <h3>Riwayat Retur</h3>
+
     <table>
         <thead>
             <tr>
@@ -17,6 +22,7 @@
                 <th>Status</th>
             </tr>
         </thead>
+
         <tbody id="historyBody"></tbody>
     </table>
 </div>
@@ -25,31 +31,32 @@
 
 window.onload = function() {
     startCamera();
-    
+
     if (typeof muatDataDashboardAwal === "function") {
         muatDataDashboardAwal();
     }
 };
 
-const APP_URL = "https://script.google.com/macros/s/AKfycbyuJTOZaFhOZ52fFKPCxFIulD5rTFJb6VehsELtOZgjmaJf0Epc4Jm71gcPVLtE9sJK/exec";
+const APP_URL =
+"https://script.google.com/macros/s/AKfycbyuJTOZaFhOZ52fFKPCxFIulD5rTFJb6VehsELtOZgjmaJf0Epc4Jm71gcPVLtE9sJK/exec";
 
 let html5QrCode = null;
 
-let scanHistory = JSON.parse(
-    localStorage.getItem("returHistory") || "[]"
-);
+let scanHistory =
+JSON.parse(localStorage.getItem("returHistory") || "[]");
 
 renderHistory();
 
 function robotBicara(teks) {
 
-    if ('speechSynthesis' in window) {
+    if ("speechSynthesis" in window) {
 
         window.speechSynthesis.cancel();
 
-        let tts = new SpeechSynthesisUtterance(teks);
+        let tts =
+        new SpeechSynthesisUtterance(teks);
 
-        tts.lang = 'id-ID';
+        tts.lang = "id-ID";
         tts.rate = 1.2;
 
         window.speechSynthesis.speak(tts);
@@ -58,25 +65,28 @@ function robotBicara(teks) {
 
 function setLampu(warna, pesan) {
 
-    document.getElementById('bca-indicator').style.backgroundColor =
-        warna === 'ijo'
-            ? '#00cc44'
-            : warna === 'kuning'
-            ? '#ffcc00'
-            : '#ff3333';
+    document.getElementById("bca-indicator").style.backgroundColor =
+        warna === "ijo"
+        ? "#00cc44"
+        : warna === "kuning"
+        ? "#ffcc00"
+        : "#ff3333";
 
-    document.getElementById('status-message').innerText = pesan;
+    document.getElementById("status-message").innerText = pesan;
 }
 
 function startCamera() {
 
-    html5QrCode = new Html5Qrcode("reader");
+    if (html5QrCode) return;
+
+    html5QrCode =
+    new Html5Qrcode("reader");
 
     html5QrCode.start(
         { facingMode: "environment" },
         {
             fps: 10,
-            qrbox: 200
+            qrbox: 220
         },
         (decodedText) => {
 
@@ -90,28 +100,39 @@ function startCamera() {
     .then(() => {
 
         setLampu(
-            'ijo',
-            'Siap Scan Returan!'
+            "ijo",
+            "Siap Scan Returan!"
         );
 
         robotBicara(
             "Sistem Retur Siap"
         );
+    })
+    .catch(err => {
+
+        console.error(err);
+
+        setLampu(
+            "merah",
+            "Kamera Gagal"
+        );
     });
 }
 
-document.getElementById("startBtn").onclick = startCamera;
+document.getElementById("startBtn")
+.addEventListener("click", startCamera);
 
 async function prosesScan(resi) {
 
     setLampu(
-        'kuning',
-        'Memproses...'
+        "kuning",
+        "Memproses..."
     );
 
     try {
 
-        const r = await fetch(APP_URL, {
+        const response =
+        await fetch(APP_URL, {
             method: "POST",
             body: JSON.stringify({
                 resi: resi,
@@ -119,17 +140,18 @@ async function prosesScan(resi) {
             })
         });
 
-        const json = await r.json();
+        const json =
+        await response.json();
 
         if (json.status === "success") {
 
             setLampu(
-                'ijo',
-                'Barang Sudah Kembali'
+                "ijo",
+                "Barang Sudah Kembali"
             );
 
             robotBicara(
-                'Barang Sudah Kembali'
+                "Barang Sudah Kembali"
             );
 
             scanHistory.unshift({
@@ -138,15 +160,17 @@ async function prosesScan(resi) {
             });
         }
 
-        else if (json.status === "duplicate") {
+        else if (
+            json.status === "duplicate"
+        ) {
 
             setLampu(
-                'merah',
-                'Sudah Pernah Scan'
+                "merah",
+                "Sudah Pernah Scan"
             );
 
             robotBicara(
-                'Sudah Pernah Diproses'
+                "Sudah Pernah Diproses"
             );
 
             scanHistory.unshift({
@@ -155,15 +179,17 @@ async function prosesScan(resi) {
             });
         }
 
-        else if (json.status === "notfound") {
+        else if (
+            json.status === "notfound"
+        ) {
 
             setLampu(
-                'merah',
-                'Resi Tidak Ditemukan'
+                "merah",
+                "Resi Tidak Ditemukan"
             );
 
             robotBicara(
-                'Resi Tidak Ditemukan'
+                "Resi Tidak Ditemukan"
             );
 
             scanHistory.unshift({
@@ -175,12 +201,12 @@ async function prosesScan(resi) {
         else {
 
             setLampu(
-                'merah',
-                'Gagal'
+                "merah",
+                "Gagal"
             );
 
             robotBicara(
-                'Proses Gagal'
+                "Proses Gagal"
             );
 
             scanHistory.unshift({
@@ -199,17 +225,17 @@ async function prosesScan(resi) {
         renderHistory();
 
     }
-    catch(e) {
+    catch (err) {
 
-        console.error(e);
+        console.error(err);
 
         setLampu(
-            'merah',
-            'Error Koneksi'
+            "merah",
+            "Error Koneksi"
         );
 
         robotBicara(
-            'Gagal Koneksi'
+            "Gagal Koneksi"
         );
     }
 
@@ -225,21 +251,21 @@ async function prosesScan(resi) {
 function renderHistory() {
 
     const body =
-        document.getElementById(
-            "historyBody"
-        );
+    document.getElementById(
+        "historyBody"
+    );
 
     body.innerHTML =
-        scanHistory.map(item => `
-            <tr>
-                <td>${item.resi}</td>
-                <td>
-                    <span class="badge">
-                        ${item.status}
-                    </span>
-                </td>
-            </tr>
-        `).join("");
+    scanHistory.map(item => `
+        <tr>
+            <td>${item.resi}</td>
+            <td>
+                <span class="badge">
+                    ${item.status}
+                </span>
+            </td>
+        </tr>
+    `).join("");
 }
 
 </script>
