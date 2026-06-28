@@ -35,12 +35,10 @@ async function upload(){
    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
    hasil.textContent="Mengupload...";
    try{
-      const r=await fetch(APP_URL,{
-        method:"POST",
-        body:JSON.stringify({
-          source:"code.gs",
-          rows:rows
-        })
+     body: JSON.stringify({
+  source: "uploadReturSPX",
+  rows: rows
+})
       });
       const j=await r.json();
       hasil.textContent=JSON.stringify(j,null,2);
