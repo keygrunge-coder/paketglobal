@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Upload Retur SPX</title>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -14,7 +14,7 @@ body{
     padding:20px;
 }
 
-.box{
+.container{
     max-width:700px;
     margin:auto;
     background:#fff;
@@ -32,11 +32,11 @@ button{
 
 button{
     background:#0d6efd;
-    color:white;
+    color:#fff;
     border:none;
     border-radius:6px;
-    font-size:16px;
     cursor:pointer;
+    font-size:16px;
 }
 
 #hasil{
@@ -49,7 +49,7 @@ button{
 </head>
 <body>
 
-<div class="box">
+<div class="container">
 
 <h2>UPLOAD RETUR SPX</h2>
 
@@ -58,7 +58,7 @@ type="file"
 id="file"
 accept=".xlsx,.xls">
 
-<button onclick="upload()">
+<button onclick="uploadSPX()">
 Upload ke RETUR_SPX
 </button>
 
@@ -73,19 +73,18 @@ Belum ada file.
 const APP_URL =
 "https://script.google.com/macros/s/AKfycbyuJTOZaFhOZ52fFKPCxFIulD5rTFJb6VehsELtOZgjmaJf0Epc4Jm71gcPVLtE9sJK/exec";
 
-async function upload(){
+async function uploadSPX(){
 
     const hasil = document.getElementById("hasil");
 
-    const file =
-    document.getElementById("file").files[0];
+    const file = document.getElementById("file").files[0];
 
     if(!file){
-        alert("Pilih file Excel dulu.");
+        alert("Pilih file Excel terlebih dahulu.");
         return;
     }
 
-    hasil.textContent="Membaca file...";
+    hasil.innerHTML = "Membaca file...";
 
     const reader = new FileReader();
 
@@ -93,46 +92,62 @@ async function upload(){
 
         try{
 
-            const workbook =
-            XLSX.read(
-                new Uint8Array(e.target.result),
-                {type:"array"}
-            );
-
-            const sheet =
-            workbook.Sheets[
-                workbook.SheetNames[0]
-            ];
-
-            const rows =
-            XLSX.utils.sheet_to_json(
-                sheet,
+            const workbook = XLSX.read(
+                e.target.result,
                 {
-                    header:1,
-                    defval:""
+                    type:"binary"
                 }
             );
 
-            hasil.textContent="Mengupload...";
+            const sheet =
+                workbook.Sheets[
+                    workbook.SheetNames[0]
+                ];
 
-           const response = await fetch(APP_URL,{
-    method:"POST",
-    body:JSON.stringify({
-        source:"uploadReturSPX",
-        rows:rows
-    })
-});
+            const rows =
+                XLSX.utils.sheet_to_json(
+                    sheet,
+                    {
+                        header:1,
+                        defval:""
+                    }
+                );
+
+            hasil.innerHTML =
+                "Mengupload " +
+                (rows.length-1) +
+                " data...";
+
+            const response =
+                await fetch(APP_URL,{
+                    method:"POST",
+                    body:JSON.stringify({
+                        source:"uploadReturSPX",
+                        rows:rows
+                    })
+                });
 
             const json =
-            await response.json();
+                await response.json();
 
-            hasil.textContent =
-            JSON.stringify(json,null,2);
+            if(json.status==="success"){
+
+                hasil.innerHTML=
+`Upload Berhasil
+
+Total Data Baru : ${json.total}`;
+
+            }else{
+
+                hasil.innerHTML=
+JSON.stringify(json,null,2);
+
+            }
 
         }catch(err){
 
-            hasil.textContent =
-            err.toString();
+            hasil.innerHTML=
+err.toString();
 
             console.error(err);
 
@@ -140,7 +155,7 @@ async function upload(){
 
     };
 
-    reader.readAsArrayBuffer(file);
+    reader.readAsBinaryString(file);
 
 }
 
