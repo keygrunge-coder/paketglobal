@@ -277,7 +277,15 @@ Simpan Resi
 </div>
 
 <script>
-
+function robotBicara(teks) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    let tts = new SpeechSynthesisUtterance(teks);
+    tts.lang = 'id-ID';
+    tts.rate = 1.2;
+    window.speechSynthesis.speak(tts);
+  }
+}
 const APP_URL="https://script.google.com/macros/s/AKfycbyuJTOZaFhOZ52fFKPCxFIulD5rTFJb6VehsELtOZgjmaJf0Epc4Jm71gcPVLtE9sJK/exec";
 
 let html5QrCode=null;
@@ -365,6 +373,7 @@ function startCamera(){
    "ijo",
    "Scanner Siap"
    );
+   robotBicara("Scanner siap");
 
  });
 }
@@ -404,6 +413,7 @@ async function saveResi(resi){
    "ijo",
    "Berhasil"
    );
+   robotBicara("Berhasil");
 
    showNotif(
    "✓ BERHASIL",
@@ -425,6 +435,7 @@ async function saveResi(resi){
    "merah",
    "Resi Dobel"
    );
+   robotBicara("Resi dobel");
 
    showNotif(
    "⚠ DOBEL",
@@ -446,6 +457,7 @@ async function saveResi(resi){
    "merah",
    "Resi Invalid"
    );
+   robotBicara("Resi invalid");
 
    showNotif(
    "⚠ INVALID",
@@ -473,6 +485,7 @@ async function saveResi(resi){
  "merah",
  "Koneksi Gagal"
  );
+ robotBicara("Koneksi gagal");
 
  }
 
