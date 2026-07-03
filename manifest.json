@@ -1,14 +1,16 @@
 {
-  "name": "Scanner Retur V3",
-  "short_name": "Scanner",
-  "start_url": "./retur.html",
+  "name": "Pusat Komando Packing V5",
+  "short_name": "Komando V5",
+  "description": "Scanner Paket Keluar SekarFootwear",
+  "start_url": "retur.html",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#003399",
   "theme_color": "#003399",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3208/3208723.png",
-      "sizes": "192x192",
+      "src": "https://cdn-icons-png.flaticon.com/512/3045/3045479.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
