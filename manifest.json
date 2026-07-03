@@ -1,13 +1,13 @@
 {
   "name": "Scanner Retur V3",
-  "short_name": "ReturScanner",
-  "start_url": "retur.html",
+  "short_name": "Scanner",
+  "start_url": "./retur.html",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "background_color": "#ffffff",
   "theme_color": "#003399",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3208/3208723.png",
       "sizes": "192x192",
       "type": "image/png"
     }
