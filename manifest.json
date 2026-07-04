@@ -1,15 +1,15 @@
 {
   "name": "Pusat Komando Retur V5",
-  "short_name": "Retur scan SRF",
+  "short_name": "scanner retur",
   "description": "Scanner Paket Retur SekarFootwear",
-  "start_url": "./retur.html",
+  "start_url": "retur.html",
   "display": "standalone",
   "background_color": "#003399",
   "theme_color": "#003399",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "./icon-512.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3045/3045479.png",
       "sizes": "512x512",
       "type": "image/png"
     }
