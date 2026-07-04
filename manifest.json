@@ -1,7 +1,7 @@
 {
-  "name": "Pusat Komando retur V5",
+  "name": "Pusat Komando Retur V5",
   "short_name": "Komando V5",
-  "description": "Scanner Paket retur SekarFootwear",
+  "description": "Scanner Paket Retur SekarFootwear",
   "start_url": "retur.html",
   "display": "standalone",
   "background_color": "#003399",
