@@ -117,15 +117,17 @@ color:#92400e;
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#003399">
 </head>
-
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./service-worker.js")
+    .then(() => console.log("SW aktif"))
+    .catch(err => console.log(err));
+}
+</script>
 <body>
 
 <div class="header-box">
 <h3>🔄 SCANNER BARANG RETUR</h3>
-  <a href="upload_spx.html" class="btn-nav">UPLOAD RETUR SPX</a>
-<a href="index.html" class="btn-nav"> SCAN PENGIRIMAN</a>
-<a href="upload.html" class="btn-nav">UPLOAD RETUR JNT</a>
-
 </div>
 
 <div id="bca-indicator"></div>
@@ -362,12 +364,6 @@ ${item.status}
 }
 
 </script>
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./service-worker.js")
-    .then(() => console.log("SW aktif"))
-    .catch(err => console.log(err));
-}
-</script>
+
 </body>
 </html>
