@@ -3,8 +3,6 @@
   "short_name": "SCAN RETUR SPX & JNT",
   "description": "Scanner Paket Retur SekarFootwear",
   "start_url": "retur.html",
-  "start_url": "index.html",
-  "start_url": "returspx.html",
   "display": "standalone",
   "background_color": "#003399",
   "theme_color": "#003399",
