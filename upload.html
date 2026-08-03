@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,47 +30,80 @@
 }
     
 body{
-    font-family:Arial,sans-serif;
-    background:#f4f4f4;
-    padding:20px;
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    padding: 20px;
 }
 
 .container{
-    max-width:900px;
-    margin:auto;
-    background:#fff;
-    padding:20px;
-    border-radius:10px;
+    max-width: 900px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+/* Card pembungkus kotak baru */
+.card {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.card h3 {
+    margin-top: 0;
+    font-size: 15px;
+    color: #333;
 }
 
 textarea{
-    width:100%;
-    height:350px;
-    padding:10px;
-    box-sizing:border-box;
+    width: 100%;
+    height: 350px;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Textarea khusus list hasil yang lebih kecil */
+.card textarea {
+    height: 150px;
 }
 
 button{
-    width:100%;
-    padding:15px;
-    margin-top:10px;
-    background:#0d6efd;
-    color:white;
-    border:none;
-    border-radius:6px;
-    font-size:16px;
+    width: 100%;
+    padding: 15px;
+    margin-top: 10px;
+    background: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
 }
 
-#hasil{
-    margin-top:20px;
-    white-space:pre-wrap;
-    background: #f8f9fa; /* Warna latar belakang kotak hasil */
-    border: 1px solid #ced4da; /* Garis pinggir kotak */
-    padding: 15px; /* Jarak dalam kotak */
-    border-radius: 6px; /* Membuat sudut kotak melengkung */
-    font-family: monospace; /* Font khusus agar teks JSON sejajar rapi */
-    font-size: 14px;
-}  
+button:hover {
+    background: #0b5ed7;
+}
+
+/* Style tabel hasil ringkasan */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+table td:last-child {
+    text-align: right;
+    font-weight: bold;
+}
 </style>
 
 </head>
@@ -85,14 +117,41 @@ button{
 <a href="upload_spx.html" class="btn-nav">UPLOAD RETUR SPX</a>
 </div>
 
-<textarea id="rawData"
-placeholder="Paste data TikTok / Shopee di sini"></textarea>
+<div class="card">
+<h3>Tempel Data Retur</h3>
+<textarea id="rawData" placeholder="Paste data TikTok / Shopee di sini"></textarea>
+</div>
 
 <button onclick="uploadRetur()">
 Upload ke Sheet
 </button>
 
-<div id="hasil"></div>
+<!-- Kotak Hasil Ringkasan -->
+<div class="card">
+<h3>Hasil Upload</h3>
+<table>
+<tr>
+<td>Berhasil</td>
+<td id="hasilBerhasil">0</td>
+</tr>
+<tr>
+<td>Duplikat</td>
+<td id="hasilDuplikat">0</td>
+</tr>
+</table>
+</div>
+
+<!-- Kotak Resi Berhasil -->
+<div class="card">
+<h3>Resi Berhasil</h3>
+<textarea id="listBerhasil" readonly placeholder="Daftar resi berhasil akan muncul di sini..."></textarea>
+</div>
+
+<!-- Kotak Resi Duplikat -->
+<div class="card">
+<h3>Resi Duplikat</h3>
+<textarea id="listDuplikat" readonly placeholder="Daftar resi duplikat akan muncul di sini..."></textarea>
+</div>
 
 </div>
 
@@ -100,7 +159,7 @@ Upload ke Sheet
 
 const APP_URL = "https://script.google.com/macros/s/AKfycbyuJTOZaFhOZ52fFKPCxFIulD5rTFJb6VehsELtOZgjmaJf0Epc4Jm71gcPVLtE9sJK/exec";
 
-// Tambahan agar bisa tekan Enter (menggunakan Ctrl + Enter agar tidak mengganggu baris baru)
+// Tambahan agar bisa tekan Ctrl + Enter untuk langsung upload
 document.getElementById("rawData").addEventListener("keydown", function(event) {
     if (event.key === "Enter" && event.ctrlKey) {
         event.preventDefault();
@@ -117,8 +176,11 @@ async function uploadRetur(){
         return;
     }
 
-    document.getElementById("hasil").innerHTML =
-        "Sedang memproses...";
+    // Menggunakan logika asli (memakai elemen teks proses sementara di card hasil/berhasil atau alert)
+    document.getElementById("hasilBerhasil").innerText = "...";
+    document.getElementById("hasilDuplikat").innerText = "...";
+    document.getElementById("listBerhasil").value = "Sedang memproses...";
+    document.getElementById("listDuplikat").value = "Sedang memproses...";
 
     try{
 
@@ -132,13 +194,17 @@ async function uploadRetur(){
 
         const json = await r.json();
 
-        document.getElementById("hasil").innerHTML =
-            JSON.stringify(json,null,2);
+        // Memasukkan hasil JSON sesuai kotak tampilan baru
+        document.getElementById("hasilBerhasil").innerText = json.berhasil || 0;
+        document.getElementById("hasilDuplikat").innerText = json.duplikat || 0;
+        
+        document.getElementById("listBerhasil").value = (json.listBerhasil || []).join("\n");
+        document.getElementById("listDuplikat").value = (json.listDuplikat || []).join("\n");
 
     }catch(err){
 
-        document.getElementById("hasil").innerHTML =
-            err.toString();
+        document.getElementById("listBerhasil").value = err.toString();
+        document.getElementById("listDuplikat").value = err.toString();
 
     }
 }
