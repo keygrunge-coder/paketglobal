@@ -372,22 +372,15 @@ try{
 const r=
 await fetch(APP_URL,{
 method:"POST",
+mode:"no-cors",
 body:JSON.stringify({
 resi:resi,
 source:"scanRetur"
 })
 });
 
-const json=
-await r.json();
-
-let badge="badge-tidak";
-let status="ERROR";
-
-if(json.status==="success"){
-
-badge="badge-kembali";
-status="KEMBALI";
+let badge="badge-kembali";
+let status="KEMBALI";
 
 setLampu(
 "ijo",
@@ -397,23 +390,6 @@ setLampu(
 robotBicara(
 "Barang Sudah Kembali"
 );
-
-}
-else if(json.status==="duplicate"){
-
-badge="badge-sudah";
-status="SUDAH";
-
-setLampu(
-"merah",
-"Sudah Pernah Scan"
-);
-
-robotBicara(
-"Sudah Pernah Diproses"
-);
-
-}
 
 scanHistory.unshift({
 resi,
